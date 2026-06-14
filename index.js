@@ -4,7 +4,7 @@ const session = require('express-session');
 const pino = require('pino');
 const QR = require('qrcode');
 const fs = require('fs');
-const { makeWASocket, useMultiFileAuthState, DisconnectReason } = require('baileys');
+const { makeWASocket, useMultiFileAuthState, DisconnectReason, generateMessageID } = require('baileys');
 
 const app = express();
 app.use(express.json());
@@ -84,6 +84,12 @@ async function startWA() {
         }
       }
     });
+
+
+    sock.ev.on('messages.upsert', async (m) => {
+    //   console.log(JSON.stringify(m, null, 2))
+    });
+    
   } catch (err) {
     console.error('[WA Error]', err);
     waStatus = 'STOPPED';
@@ -120,14 +126,112 @@ async function deleteSession() {
 
 app.post('/api/send', requireApiKey, async (req, res) => {
   try {
-    if (waStatus !== 'CONNECTED' || !sock) return res.status(503).json({ error: 'WhatsApp belum siap.' });
-    const { to, text } = req.body;
-    if (!to || !text) return res.status(400).json({ error: '"to" dan "text" wajib ada.' });
+    if (waStatus !== 'CONNECTED' || !sock) {
+      return res.status(503).json({ error: 'WhatsApp belum siap.' });
+    }
 
-    const msg = await sock.sendMessage(toJid(to), { text });
-    res.json({ ok: true, to: toJid(to), messageId: msg.key.id });
+    const {
+      to,
+      type = 'text',
+      text = '',
+      url,
+      fileName,
+      isHeader = false
+    } = req.body;
+
+    if (!to) {
+      return res.status(400).json({ error: '"to" wajib ada.' });
+    }
+
+    const jid = toJid(to);
+
+    const contextInfo = isHeader ? {
+      externalAdReply: {
+        title: "Tes 1",
+        body: "Tes 2",
+        thumbnail: fs.readFileSync('./tes.jpg'),
+        thumbnailUrl: "https://smkn5telkom.sch.id/",
+        mediaUrl: "https://smkn5telkom.sch.id/",
+        sourceUrl: "https://smkn5telkom.sch.id/",
+        renderLargerThumbnail: true,
+        showAdAttribution: true,
+        mediaType: 1
+      }
+    } : undefined;
+
+    let content;
+
+    switch (type.toLowerCase()) {
+      case 'image':
+        if (!url) {
+          return res.status(400).json({ error: '"url" wajib ada untuk image.' });
+        }
+
+        content = {
+          image: { url },
+          caption: text
+        };
+        break;
+
+      case 'video':
+        if (!url) {
+          return res.status(400).json({ error: '"url" wajib ada untuk video.' });
+        }
+
+        content = {
+          video: { url },
+          caption: text
+        };
+        break;
+
+      case 'audio':
+        if (!url) {
+          return res.status(400).json({ error: '"url" wajib ada untuk audio.' });
+        }
+
+        content = {
+          audio: { url },
+          mimetype: 'audio/mpeg'
+        };
+        break;
+
+      case 'document':
+        if (!url) {
+          return res.status(400).json({ error: '"url" wajib ada untuk document.' });
+        }
+
+        content = {
+          document: { url },
+          fileName: fileName || 'file'
+        };
+        break;
+
+      default:
+        content = {
+          text
+        };
+    }
+
+    if (contextInfo) {
+      content.contextInfo = contextInfo;
+    }
+
+    const msg = await sock.sendMessage(jid, content);
+
+    res.json({
+      ok: true,
+      type,
+      to: jid,
+      messageId: msg.key.id
+    });
+
   } catch (e) {
-    res.status(500).json({ ok: false, error: e.message });
+    console.error(e);
+
+    res.status(500).json({
+      ok: false,
+      error: e.message
+    });
   }
 });
 
