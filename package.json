@@ -1,7 +1,7 @@
 {
   "name": "wa-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "Dibuat Oleh Zilfa Ardiansyah",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
