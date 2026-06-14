@@ -1,3 +1,24 @@
+# Configuration
+
+## Environment Variables (.env)
+
+Buat file `.env` pada root project.
+
+### Example
+
+```env
+PORT=3000
+
+ADMIN_USER=admin
+ADMIN_PASS=password
+
+API_KEY=your-secret-api-key
+
+EXPRESS_SECRET=super-secret-session-key
+```
+
+
+
 # WhatsApp API Documentation
 
 ## Endpoint
