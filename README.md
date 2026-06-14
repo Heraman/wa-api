@@ -16,6 +16,7 @@ API_KEY=your-secret-api-key
 
 EXPRESS_SECRET=super-secret-session-key
 ```
+---
 
 # Header Configuration
 
