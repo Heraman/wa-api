@@ -17,7 +17,45 @@ API_KEY=your-secret-api-key
 EXPRESS_SECRET=super-secret-session-key
 ```
 
+# Header Configuration
 
+Fitur Header digunakan untuk menampilkan preview card pada pesan WhatsApp menggunakan `externalAdReply`.
+
+## File Thumbnail
+
+Letakkan file thumbnail pada root project:
+
+```text
+project/
+├── server.js
+├── .env
+├── tes.jpg
+└── baileys/
+```
+
+---
+
+## Mengubah Header
+
+Cari bagian berikut pada file `server.js`:
+
+```js
+const contextInfo = isHeader ? {
+  externalAdReply: {
+    title: "Tes 1",
+    body: "Tes 2",
+    thumbnail: fs.readFileSync('./tes.jpg'),
+    thumbnailUrl: "https://example.com",
+    mediaUrl: "https://example.com",
+    sourceUrl: "https://example.com",
+    renderLargerThumbnail: true,
+    showAdAttribution: true,
+    mediaType: 1
+  }
+} : undefined;
+```
+
+---
 
 # WhatsApp API Documentation
 
