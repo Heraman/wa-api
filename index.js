@@ -49,6 +49,7 @@ async function startWA() {
 
     sock = makeWASocket({
       auth: state,
+      version: [2, 3000, 1037873869],
       logger: pino({ level: 'silent' }),
       browser: ['Dashboard Bot', 'Chrome', '1.0.0']
     });
